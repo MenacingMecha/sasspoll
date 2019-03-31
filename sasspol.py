@@ -57,6 +57,24 @@ def debug_test_planned_games(planned_games: [Game]):
         print(pg.name + " - " + pg.genre)
     print("debug_test_game_class() END")
 
+def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
+    ''' Returns a set of every played game in the input csv '''
+    with open(path_to_games_played_csv, newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        next(csvreader)  # skip header line
+        for row in csvreader:
+            played_title = row[1]
+            played_date = row[2]
+            for g in planned_games:
+                if played_title == g.name:
+                    g.set_last_played_timestamp(played_date)
+
+def debug_test_games_played(planned_games: [Game]):
+    ''' Prints the most recent timestamp for every played game for debug testing purposes '''
+    for pg in planned_games:
+        if pg.has_been_played:
+            print("'" + pg.name + "' was last played: " + str(pg.last_played_timestamp))
+
 def arg_parse() -> []:
     '''Returns a list of parsed command line arguments'''
     #parser = argparse.ArgumentParser(version='2.1')
@@ -88,6 +106,8 @@ def main():
     args = arg_parse()
     planned_games = get_planned_games(args.planned_games_csv_path)
     #debug_test_planned_games(planned_games)
+    set_games_played(args.played_games_csv_path, planned_games)
+    debug_test_games_played(planned_games)
 
 if __name__ == "__main__":
     main()
