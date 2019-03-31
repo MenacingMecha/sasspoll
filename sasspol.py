@@ -79,10 +79,14 @@ def arg_parse() -> []:
     '''Returns a list of parsed command line arguments'''
     #parser = argparse.ArgumentParser(version='2.1')
     parser = argparse.ArgumentParser()
-    parser.add_argument('planned_games_csv_path', action='store',
+    parser.add_argument('planned_games_csv_path', action='store', type=str,
             help='Input CSV containing details of planned side bracket games')
-    parser.add_argument('played_games_csv_path', action='store',
+    parser.add_argument('played_games_csv_path', action='store', type=str,
             help='Input CSV containing details of played side bracket games')
+    parser.add_argument('-d', action='store', dest='date_of_tournament', type=str,
+            help='Date of the tournament this poll will decide')
+    parser.add_argument('-g', action='store', dest='weeks_between_replay', type=int, default=4,
+            help='How many weeks should be leave before running a game again? Defaults to 1 month')
 #    parser.add_argument('-o', action='store', dest='output_file',
 #            help='Output CSV to write stats to')
 #    parser.add_argument('-s', '--silent', action='store_true', default=False,
@@ -107,7 +111,7 @@ def main():
     planned_games = get_planned_games(args.planned_games_csv_path)
     #debug_test_planned_games(planned_games)
     set_games_played(args.played_games_csv_path, planned_games)
-    debug_test_games_played(planned_games)
+    #debug_test_games_played(planned_games)
 
 if __name__ == "__main__":
     main()
