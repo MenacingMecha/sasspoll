@@ -1,6 +1,7 @@
 import time
 import datetime
 import argparse
+import csv
 
 class Game:
     ''' Stores the values for each game listed '''
@@ -29,6 +30,28 @@ def debug_test_game_class():
     last_date_played = "31/03/19"
     test_game.set_last_played_timestamp(last_date_played)
     print("last played timestamp: " + str(test_game.last_played_timestamp))
+    print("debug_test_game_class() END")
+
+def get_planned_games(path_to_csv: str) -> [Game]:
+    planned_games = []
+    row_count = 0
+    with open(path_to_csv, newline='') as csvfile:
+        csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        next(csvreader)  # skip header line
+        for row in csvreader:
+            # first two columns are game title and genre
+            game_name = row[0]
+            game_genre = row[1]
+            planned_game = Game(game_name, game_genre)
+            planned_games.append(planned_game)
+            row_count += 1
+    #print(row_count)
+    return planned_games
+
+def debug_test_planned_games(planned_games: [Game]):
+    print("debug_test_game_class() START")
+    for pg in planned_games:
+        print(pg.name + " - " + pg.genre)
     print("debug_test_game_class() END")
 
 def arg_parse() -> []:
@@ -60,6 +83,8 @@ def arg_parse() -> []:
 def main():
     #debug_test_game_class()
     args = arg_parse()
+    planned_games = get_planned_games(args.planned_games_csv_path)
+    #debug_test_planned_games(planned_games)
 
 if __name__ == "__main__":
     main()
