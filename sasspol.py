@@ -23,6 +23,7 @@ class Game:
         return time.mktime(datetime.datetime.strptime(date, "%d/%m/%y").timetuple())
 
 def debug_test_game_class():
+    ''' Creates and prints a test game object for debug testing purposes '''
     print("debug_test_game_class() START")
     test_game = Game("mario brother", "jump")
     print("name: " + test_game.name)
@@ -33,6 +34,7 @@ def debug_test_game_class():
     print("debug_test_game_class() END")
 
 def get_planned_games(path_to_csv: str) -> [Game]:
+    ''' Returns an array of every planned game in the input csv '''
     planned_games = []
     row_count = 0
     with open(path_to_csv, newline='') as csvfile:
@@ -49,6 +51,7 @@ def get_planned_games(path_to_csv: str) -> [Game]:
     return planned_games
 
 def debug_test_planned_games(planned_games: [Game]):
+    ''' Prints the title and genre of every planned game for debug testing purposes '''
     print("debug_test_game_class() START")
     for pg in planned_games:
         print(pg.name + " - " + pg.genre)
