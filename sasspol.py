@@ -14,6 +14,9 @@ class Game:
         self.setup_amount = setup_amount
 
     def set_last_played_timestamp(self, date: str):
+        ''' For played games, set the appropriate timestamp.
+        The date string has already been validated, no need to check it again here.
+        '''
         self.has_been_played = True
         self.last_played_timestamp = (get_timestamp_from_date(date))
 
@@ -72,9 +75,10 @@ def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
         for row in csvreader:
             played_title = row[1]
             played_date = row[2]
-            for g in planned_games:
-                if played_title == g.name:
-                    g.set_last_played_timestamp(played_date)
+            if is_date_string_valid(played_date):
+                for g in planned_games:
+                    if played_title == g.name:
+                        g.set_last_played_timestamp(played_date)
 
 def debug_test_games_played(planned_games: [Game]):
     ''' Prints the most recent timestamp for every played game for debug testing purposes '''
@@ -98,6 +102,9 @@ def get_enough_weeks_passed(last_played_timestamp: float, date_of_tournament: st
             CONST_WEEK_TIMESTAMP())
 
 def is_date_string_valid(date: str) -> bool:
+    ''' Checks to see if supplied date string is valid.
+    Exits with an error message if not.
+    '''
     valid = False
     if type(date) is str:
         # check if formated as dd/mm/yy
@@ -143,13 +150,13 @@ def main():
     #debug_test_game_class()
     args = arg_parse()
     # Check user supplied date string to see if we need to terminate early
-    is_date_string_valid(args.date_of_tournament)
-    planned_games = get_planned_games(args.planned_games_csv_path)
-    #debug_test_planned_games(planned_games)
-    set_games_played(args.played_games_csv_path, planned_games)
-    #debug_test_games_played(planned_games)
-    valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
-    #debug_test_planned_games(valid_games)
+    if is_date_string_valid(args.date_of_tournament):
+        planned_games = get_planned_games(args.planned_games_csv_path)
+        #debug_test_planned_games(planned_games)
+        set_games_played(args.played_games_csv_path, planned_games)
+        #debug_test_games_played(planned_games)
+        valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
+        #debug_test_planned_games(valid_games)
 
 if __name__ == "__main__":
     main()
