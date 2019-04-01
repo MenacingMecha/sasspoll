@@ -14,14 +14,13 @@ class Game:
 
     def set_last_played_timestamp(self, date: str):
         self.has_been_played = True
-        self.last_played_timestamp = (self.get_timestamp_from_date(date))
+        self.last_played_timestamp = (get_timestamp_from_date(date))
 
-    @staticmethod
-    def get_timestamp_from_date(date: str) -> int:
-        ''' Converts a date string into int unix epoch time.
-        date argument must be formatted as dd/mm/yy
-        '''
-        return time.mktime(datetime.datetime.strptime(date, "%d/%m/%y").timetuple())
+def get_timestamp_from_date(date: str) -> int:
+    ''' Converts a date string into int unix epoch time.
+    date argument must be formatted as dd/mm/yy
+    '''
+    return time.mktime(datetime.datetime.strptime(date, "%d/%m/%y").timetuple())
 
 def CONST_WEEK_TIMESTAMP() -> int:
     ''' Returns a constant value of on eweek's worth of time in Unix Epoch time '''
@@ -50,7 +49,7 @@ def get_planned_games(path_to_csv: str) -> [Game]:
             # first two columns are game title and genre
             game_name = row[0]
             game_genre = row[1]
-            game_setup_amount = row[4]
+            game_setup_amount = int(row[4])
             planned_game = Game(game_name, game_genre, game_setup_amount)
             planned_games.append(planned_game)
             row_count += 1
@@ -65,7 +64,7 @@ def debug_test_planned_games(planned_games: [Game]):
     print("debug_test_game_class() END")
 
 def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
-    ''' Returns a set of every played game in the input csv '''
+    ''' Iterates through the planned game list, setting every played game's appropriate timestamps '''
     with open(path_to_games_played_csv, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(csvreader)  # skip header line
@@ -82,6 +81,21 @@ def debug_test_games_played(planned_games: [Game]):
         if pg.has_been_played:
             print("'" + pg.name + "' was last played: " + str(pg.last_played_timestamp))
 
+def get_valid_games(planned_games: [Game], date_of_tournament: str, weeks_between_replay: int) -> [Game]:
+    ''' Returns a list of valid side bracket games for the poll '''
+    valid_games = []
+    for pg in planned_games:
+        if pg.setup_amount > 0:
+            if (not pg.has_been_played or get_enough_weeks_passed(pg.last_played_timestamp, date_of_tournament,
+                weeks_between_replay)):
+                valid_games.append(pg)
+    return valid_games
+
+def get_enough_weeks_passed(last_played_timestamp: float, date_of_tournament: str, weeks_between_replay: int) -> bool:
+    ''' Return whether enough weeks have passed since the game was last played to be considered for playing again '''
+    return get_timestamp_from_date(date_of_tournament) > last_played_timestamp + (weeks_between_replay *
+            CONST_WEEK_TIMESTAMP())
+
 def arg_parse() -> []:
     '''Returns a list of parsed command line arguments'''
     #parser = argparse.ArgumentParser(version='2.1')
@@ -90,6 +104,7 @@ def arg_parse() -> []:
             help='Input CSV containing details of planned side bracket games')
     parser.add_argument('played_games_csv_path', action='store', type=str,
             help='Input CSV containing details of played side bracket games')
+    # TODO: add a default value for the following
     parser.add_argument('-d', action='store', dest='date_of_tournament', type=str,
             help='Date of the tournament this poll will decide')
     parser.add_argument('-g', action='store', dest='weeks_between_replay', type=int, default=4,
@@ -119,6 +134,8 @@ def main():
     #debug_test_planned_games(planned_games)
     set_games_played(args.played_games_csv_path, planned_games)
     #debug_test_games_played(planned_games)
+    valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
+    #debug_test_planned_games(valid_games)
 
 if __name__ == "__main__":
     main()
