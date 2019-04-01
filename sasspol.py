@@ -22,6 +22,10 @@ class Game:
         '''
         return time.mktime(datetime.datetime.strptime(date, "%d/%m/%y").timetuple())
 
+def CONST_WEEK_TIMESTAMP() -> int:
+    ''' Returns a constant value of on eweek's worth of time in Unix Epoch time '''
+    return 604800
+
 def debug_test_game_class():
     ''' Creates and prints a test game object for debug testing purposes '''
     print("debug_test_game_class() START")
