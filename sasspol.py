@@ -5,11 +5,12 @@ import csv
 
 class Game:
     ''' Stores the values for each game listed '''
-    def __init__(self, name: str, genre: str):
+    def __init__(self, name: str, genre: str, setup_amount: int):
         self.name = name
         self.genre = genre
         self.has_been_played = False
         self.last_played_timestamp = 0
+        self.setup_amount = setup_amount
 
     def set_last_played_timestamp(self, date: str):
         self.has_been_played = True
@@ -29,9 +30,10 @@ def CONST_WEEK_TIMESTAMP() -> int:
 def debug_test_game_class():
     ''' Creates and prints a test game object for debug testing purposes '''
     print("debug_test_game_class() START")
-    test_game = Game("mario brother", "jump")
+    test_game = Game("mario brother", "jump", 2)
     print("name: " + test_game.name)
     print("genre: " + test_game.genre)
+    print("setup amount: " + str(test_game.setup_amount))
     last_date_played = "31/03/19"
     test_game.set_last_played_timestamp(last_date_played)
     print("last played timestamp: " + str(test_game.last_played_timestamp))
@@ -48,7 +50,8 @@ def get_planned_games(path_to_csv: str) -> [Game]:
             # first two columns are game title and genre
             game_name = row[0]
             game_genre = row[1]
-            planned_game = Game(game_name, game_genre)
+            game_setup_amount = row[4]
+            planned_game = Game(game_name, game_genre, game_setup_amount)
             planned_games.append(planned_game)
             row_count += 1
     #print(row_count)
@@ -58,7 +61,7 @@ def debug_test_planned_games(planned_games: [Game]):
     ''' Prints the title and genre of every planned game for debug testing purposes '''
     print("debug_test_game_class() START")
     for pg in planned_games:
-        print(pg.name + " - " + pg.genre)
+        print(pg.name + " - " + pg.genre + " - setups: " + str(pg.setup_amount))
     print("debug_test_game_class() END")
 
 def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
