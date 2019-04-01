@@ -2,6 +2,7 @@ import time
 import datetime
 import argparse
 import csv
+from sys import exit
 
 class Game:
     ''' Stores the values for each game listed '''
@@ -96,6 +97,17 @@ def get_enough_weeks_passed(last_played_timestamp: float, date_of_tournament: st
     return get_timestamp_from_date(date_of_tournament) > last_played_timestamp + (weeks_between_replay *
             CONST_WEEK_TIMESTAMP())
 
+def is_date_string_valid(date: str) -> bool:
+    valid = False
+    if type(date) is str:
+        # check if formated as dd/mm/yy
+        if len(date) == 8 and (date[2] == "/" and date[5] == "/"):
+            valid = True
+    if not valid:
+        print("ERROR: '" + date + "' is not a valid date string")
+        exit(1)
+    return valid
+
 def arg_parse() -> []:
     '''Returns a list of parsed command line arguments'''
     #parser = argparse.ArgumentParser(version='2.1')
@@ -130,6 +142,8 @@ def arg_parse() -> []:
 def main():
     #debug_test_game_class()
     args = arg_parse()
+    # Check user supplied date string to see if we need to terminate early
+    is_date_string_valid(args.date_of_tournament)
     planned_games = get_planned_games(args.planned_games_csv_path)
     #debug_test_planned_games(planned_games)
     set_games_played(args.played_games_csv_path, planned_games)
