@@ -70,6 +70,13 @@ class SurveyMonkeyRequest:
         url_extras = [survey_id, "pages"]
         return self.make_request(RequestTypes.POST, payload, url_extras)
 
+    def get_page(self, survey_id: str, page_index: int) -> json:
+        payload = {
+                "page": page_index
+                }
+        url_extras = [survey_id, "pages"]
+        return self.make_request(RequestTypes.GET, payload, url_extras)
+
 class Game:
     ''' Stores the values for each game listed '''
     def __init__(self, name: str, genre: str, setup_amount: int):
@@ -246,9 +253,14 @@ def main():
         print("Creating survey... DONE")
         #print_request_response(create_survey_response)
         survey_id = create_survey_response["id"]
-        print("Creating page...", end="\r")
-        create_page_response = SurveyMonkeyRequest(personal_access_token).create_new_page(survey_id)
-        print("Creating page... DONE")
+#        print("Creating page...", end="\r")
+#        create_page_response = SurveyMonkeyRequest(personal_access_token).create_new_page(survey_id)
+#        print("Creating page... DONE")
+        print("Getting page ID...", end="\r")
+        get_page_response = SurveyMonkeyRequest(personal_access_token).get_page(survey_id, 1)
+        print("Getting page ID... DONE")
+        #print_request_response(get_page_response)
+        page_id = get_page_response["data"][0]["id"]
 
 if __name__ == "__main__":
     main()
