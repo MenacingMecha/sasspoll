@@ -6,8 +6,13 @@ from sys import exit
 import getpass
 import requests
 import json
+from enum import Enum
 #import urllib3
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+class RequestTypes(Enum):
+    POST = 1
+    GET = 2
 
 class SurveyMonkeyRequest:
     url_base = "https://api.surveymonkey.com/v3/surveys"
@@ -15,7 +20,7 @@ class SurveyMonkeyRequest:
     def __init__(self, access_token):
         self.access_token = access_token
 
-    def make_request(self, payload: dict, url_extras: [str] = []) -> json:
+    def make_request(self, request_type: RequestTypes, payload: dict, url_extras: [str] = []) -> json:
         s = requests.Session()
         s.headers.update({
             "Authorization": "Bearer %s" % self.access_token,
@@ -23,7 +28,13 @@ class SurveyMonkeyRequest:
             })
         url = self.url_base + self.get_url_end_string(url_extras)
         #print(url)
-        response = s.post(url, json=payload)
+        if request_type == RequestTypes.POST:
+            response = s.post(url, json=payload)
+        elif request_type == RequestTypes.GET:
+            response = s.get(url, json=payload)
+        else:
+            print("ERROR: '" + request_type + "' is not a valid request type")
+            exit(1)
         response_json = response.json()
         self.validate_response(response_json)
         return response_json
@@ -49,14 +60,14 @@ class SurveyMonkeyRequest:
         payload = {
                 "title": "TEST SURVEY CREATION"
                 }
-        return self.make_request(payload)
+        return self.make_request(RequestTypes.POST, payload)
 
     def create_new_page(self, survey_id: str) -> json:
         payload = {
                 "title": "Page title"
                 }
         url_extras = [survey_id, "pages"]
-        return self.make_request(payload, url_extras)
+        return self.make_request(RequestTypes.POST, payload, url_extras)
 
 class Game:
     ''' Stores the values for each game listed '''
