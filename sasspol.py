@@ -4,29 +4,28 @@ import argparse
 import csv
 from sys import exit
 import getpass
-#import requests
+import requests
+import json
 #import urllib3
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-class SurveyMonkey:
-    def __init__(self):
-        self.personal_access_token = self.get_personal_access_token()
+class SurveyMonkeyRequest:
+    def __init__(self, access_token):
+        self.access_token = access_token
 
-    @staticmethod
-    def get_personal_access_token() -> str:
-        return getpass.getpass("Enter SurveyMonkey API personal access token: ")
-#    def create_empty_survey():
-#        s = requests.Session()
-#        s.headers.update({
-#        "Authorization": "Bearer %s" % YOUR_ACCESS_TOKEN,
-#        "Content-Type": "application/json"
-#        })
-#
-#        payload = {
-#            "title": "My Survey"
-#            }
-#        url = "https://api.surveymonkey.com/v3/surveys"
-#        s.post(url, json=payload)
+    def create_empty_survey(self):
+        s = requests.Session()
+        s.headers.update({
+        "Authorization": "Bearer %s" % self.access_token,
+        "Content-Type": "application/json"
+        })
+
+        payload = {
+            "title": "TEST SURVEY CREATION"
+            }
+        url = "https://api.surveymonkey.com/v3/surveys"
+        response = s.post(url, json=payload)
+        return response.json()
 
 
 class Game:
@@ -140,6 +139,12 @@ def is_date_string_valid(date: str) -> bool:
         exit(1)
     return valid
 
+def get_personal_access_token() -> str:
+    return getpass.getpass("Enter SurveyMonkey API personal access token: ")
+
+def print_request_response(request_response: json):
+    print(json.dumps(request_response, indent=4))
+
 def arg_parse() -> []:
     '''Returns a list of parsed command line arguments'''
     #parser = argparse.ArgumentParser(version='2.1')
@@ -184,7 +189,9 @@ def main():
         valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
         #debug_test_planned_games(valid_games)
         # Make poll
-        api_ref = SurveyMonkey()
+        personal_access_token = get_personal_access_token()
+        create_survey_response = SurveyMonkeyRequest(personal_access_token).create_empty_survey()
+        print_request_response(create_survey_response)
 
 if __name__ == "__main__":
     main()
