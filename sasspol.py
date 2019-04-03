@@ -3,6 +3,31 @@ import datetime
 import argparse
 import csv
 from sys import exit
+import getpass
+#import requests
+#import urllib3
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+class SurveyMonkey:
+    def __init__(self):
+        self.personal_access_token = self.get_personal_access_token()
+
+    @staticmethod
+    def get_personal_access_token() -> str:
+        return getpass.getpass("Enter SurveyMonkey API personal access token: ")
+#    def create_empty_survey():
+#        s = requests.Session()
+#        s.headers.update({
+#        "Authorization": "Bearer %s" % YOUR_ACCESS_TOKEN,
+#        "Content-Type": "application/json"
+#        })
+#
+#        payload = {
+#            "title": "My Survey"
+#            }
+#        url = "https://api.surveymonkey.com/v3/surveys"
+#        s.post(url, json=payload)
+
 
 class Game:
     ''' Stores the values for each game listed '''
@@ -151,12 +176,15 @@ def main():
     args = arg_parse()
     # Check user supplied date string to see if we need to terminate early
     if is_date_string_valid(args.date_of_tournament):
+        # Parse data from input CSVs
         planned_games = get_planned_games(args.planned_games_csv_path)
         #debug_test_planned_games(planned_games)
         set_games_played(args.played_games_csv_path, planned_games)
         #debug_test_games_played(planned_games)
         valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
         #debug_test_planned_games(valid_games)
+        # Make poll
+        api_ref = SurveyMonkey()
 
 if __name__ == "__main__":
     main()
