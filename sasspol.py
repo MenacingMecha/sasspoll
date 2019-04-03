@@ -6,10 +6,11 @@ from sys import exit
 import getpass
 import requests
 import json
-from enum import Enum
+from enum import Enum, unique
 #import urllib3
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+@unique
 class RequestTypes(Enum):
     POST = 1
     GET = 2
