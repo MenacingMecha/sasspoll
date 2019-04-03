@@ -10,6 +10,22 @@ from enum import Enum, unique
 #import urllib3
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+class Game:
+    ''' Stores the values for each game listed '''
+    def __init__(self, name: str, genre: str, setup_amount: int):
+        self.name = name
+        self.genre = genre
+        self.has_been_played = False
+        self.last_played_timestamp = 0
+        self.setup_amount = setup_amount
+
+    def set_last_played_timestamp(self, date: str):
+        ''' For played games, set the appropriate timestamp.
+        The date string has already been validated, no need to check it again here.
+        '''
+        self.has_been_played = True
+        self.last_played_timestamp = (get_timestamp_from_date(date))
+
 @unique
 class RequestTypes(Enum):
     POST = 1
@@ -77,21 +93,28 @@ class SurveyMonkeyRequest:
         url_extras = [survey_id, "pages"]
         return self.make_request(RequestTypes.GET, payload, url_extras)
 
-class Game:
-    ''' Stores the values for each game listed '''
-    def __init__(self, name: str, genre: str, setup_amount: int):
-        self.name = name
-        self.genre = genre
-        self.has_been_played = False
-        self.last_played_timestamp = 0
-        self.setup_amount = setup_amount
+    def add_poll(self, survey_id: str, page_id: str, games: [Game]) -> json:
+        payload = {
+                "headings": [
+                    {
+                        "heading": "Games"
+                        }
+                    ],
+                "position": 1,
+                "family": "single_choice",
+                "subtype": "vertical",
+                "answers": {
+                    "choices": self.get_poll_choices(games)
+                    }
+                }
+        url_extras = [survey_id, "pages", page_id, "questions"]
+        return self.make_request(RequestTypes.POST, payload, url_extras)
 
-    def set_last_played_timestamp(self, date: str):
-        ''' For played games, set the appropriate timestamp.
-        The date string has already been validated, no need to check it again here.
-        '''
-        self.has_been_played = True
-        self.last_played_timestamp = (get_timestamp_from_date(date))
+    def get_poll_choices(self, games: [Game]) -> [dict]:
+        poll_choices = []
+        for g in games:
+            poll_choices.append({"text": g.name})
+        return poll_choices
 
 def get_timestamp_from_date(date: str) -> int:
     ''' Converts a date string into int unix epoch time.
@@ -257,10 +280,15 @@ def main():
 #        create_page_response = SurveyMonkeyRequest(personal_access_token).create_new_page(survey_id)
 #        print("Creating page... DONE")
         print("Getting page ID...", end="\r")
-        get_page_response = SurveyMonkeyRequest(personal_access_token).get_page(survey_id, 1)
+        page_to_get = 1
+        get_page_response = SurveyMonkeyRequest(personal_access_token).get_page(survey_id, page_to_get)
         print("Getting page ID... DONE")
         #print_request_response(get_page_response)
-        page_id = get_page_response["data"][0]["id"]
+        page_id = get_page_response["data"][page_to_get - 1]["id"]
+        print("Adding poll to survey...", end="\r")
+        add_poll_response = SurveyMonkeyRequest(personal_access_token).add_poll(survey_id, page_id, valid_games)
+        print("Adding poll to survey... DONE")
+        print("Poll created successfully!")
 
 if __name__ == "__main__":
     main()
