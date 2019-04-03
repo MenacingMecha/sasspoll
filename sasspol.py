@@ -10,23 +10,53 @@ import json
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class SurveyMonkeyRequest:
+    url_base = "https://api.surveymonkey.com/v3/surveys"
+
     def __init__(self, access_token):
         self.access_token = access_token
 
-    def create_empty_survey(self):
+    def make_request(self, payload: dict, url_extras: [str] = []) -> json:
         s = requests.Session()
         s.headers.update({
-        "Authorization": "Bearer %s" % self.access_token,
-        "Content-Type": "application/json"
-        })
-
-        payload = {
-            "title": "TEST SURVEY CREATION"
-            }
-        url = "https://api.surveymonkey.com/v3/surveys"
+            "Authorization": "Bearer %s" % self.access_token,
+            "Content-Type": "application/json"
+            })
+        url = self.url_base + self.get_url_end_string(url_extras)
+        #print(url)
         response = s.post(url, json=payload)
-        return response.json()
+        response_json = response.json()
+        self.validate_response(response_json)
+        return response_json
 
+    @staticmethod
+    def get_url_end_string(url_extras: [str]) -> str:
+        if len(url_extras) == 0:
+            return ""
+        else:
+            url_end_string = ""
+            for i in url_extras:
+                url_end_string += "/" + i
+            return url_end_string
+
+    @staticmethod
+    def validate_response(response: json):
+        if "error" in response:
+            print("ERROR: Request returned error")
+            print_request_response(response)
+            exit(1)
+
+    def create_empty_survey(self) -> json:
+        payload = {
+                "title": "TEST SURVEY CREATION"
+                }
+        return self.make_request(payload)
+
+    def create_new_page(self, survey_id: str) -> json:
+        payload = {
+                "title": "Page title"
+                }
+        url_extras = [survey_id, "pages"]
+        return self.make_request(payload, url_extras)
 
 class Game:
     ''' Stores the values for each game listed '''
@@ -143,6 +173,7 @@ def get_personal_access_token() -> str:
     return getpass.getpass("Enter SurveyMonkey API personal access token: ")
 
 def print_request_response(request_response: json):
+    print("Printing response:")
     print(json.dumps(request_response, indent=4))
 
 def arg_parse() -> []:
@@ -182,16 +213,30 @@ def main():
     # Check user supplied date string to see if we need to terminate early
     if is_date_string_valid(args.date_of_tournament):
         # Parse data from input CSVs
+        print("Getting planned games...", end="\r")
         planned_games = get_planned_games(args.planned_games_csv_path)
+        print("Getting planned games... DONE")
         #debug_test_planned_games(planned_games)
+        print("Setting played games...", end="\r")
         set_games_played(args.played_games_csv_path, planned_games)
+        print("Setting played games... DONE")
         #debug_test_games_played(planned_games)
+        print("Getting valid games...", end="\r")
         valid_games = get_valid_games(planned_games, args.date_of_tournament, args.weeks_between_replay)
+        print("Getting valid games... DONE")
         #debug_test_planned_games(valid_games)
         # Make poll
+        print("Getting personal access token...", end="\r")
         personal_access_token = get_personal_access_token()
+        print("Getting personal access token... DONE")
+        print("Creating survey...", end="\r")
         create_survey_response = SurveyMonkeyRequest(personal_access_token).create_empty_survey()
-        print_request_response(create_survey_response)
+        print("Creating survey... DONE")
+        #print_request_response(create_survey_response)
+        survey_id = create_survey_response["id"]
+        print("Creating page...", end="\r")
+        create_page_response = SurveyMonkeyRequest(personal_access_token).create_new_page(survey_id)
+        print("Creating page... DONE")
 
 if __name__ == "__main__":
     main()
