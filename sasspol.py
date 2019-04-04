@@ -110,7 +110,9 @@ class SurveyMonkeyRequest:
                         }
                     ],
                 "position": 1,
-                "family": "single_choice",
+                # TODO: make this a command line argument?
+                #"family": "single_choice",
+                "family": "multiple_choice",
                 "subtype": "vertical",
                 "answers": {
                     "choices": self.get_poll_choices(games)
