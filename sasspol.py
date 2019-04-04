@@ -7,8 +7,6 @@ import getpass
 import requests
 import json
 from enum import Enum, unique
-#import urllib3
-#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Game:
     """Stores the values for each game listed."""
@@ -20,7 +18,7 @@ class Game:
         self.setup_amount = setup_amount
 
     def set_last_played_timestamp(self, date: str):
-        """ For played games, set the appropriate timestamp.
+        """For played games, set the appropriate timestamp.
         The date string has already been validated, no need to check it again here.
         """
         self.has_been_played = True
@@ -28,17 +26,19 @@ class Game:
 
 @unique
 class RequestTypes(Enum):
+    """ Request types that can be given to make_request. """
     POST = 1
     GET = 2
 
 class SurveyMonkeyRequest:
+    """Handles interactions with the SurveyMonkey API."""
     url_base = "https://api.surveymonkey.com/v3/surveys"
 
     def __init__(self, access_token):
         self.access_token = access_token
 
     def make_request(self, request_type: RequestTypes, payload: dict, url_extras: [str] = []) -> json:
-    """Make a request to the SurveyMonkey API. Returns a json string of the response."""
+        """Make a request to the SurveyMonkey API. Returns a json string of the response."""
         s = requests.Session()
         s.headers.update({
             "Authorization": "Bearer %s" % self.access_token,
@@ -59,7 +59,7 @@ class SurveyMonkeyRequest:
 
     @staticmethod
     def get_url_end_string(url_extras: [str]) -> str:
-    """Convert a list of url subdomains into a url string."""
+        """Convert a list of url subdomains into a url string."""
         if len(url_extras) == 0:
             return ""
         else:
@@ -70,21 +70,21 @@ class SurveyMonkeyRequest:
 
     @staticmethod
     def validate_response(response: json):
-    """Check the request responce to see if it's an error, and if it is, exit with an error."""
+        """Check the request responce to see if it's an error, and if it is, exit with an error."""
         if "error" in response:
             print("ERROR: Request returned error")
             print_request_response(response)
             exit(1)
 
     def create_empty_survey(self) -> json:
-    """Creates a new survey."""
+        """Creates a new survey."""
         payload = {
                 "title": "TEST SURVEY CREATION"
                 }
         return self.make_request(RequestTypes.POST, payload)
 
     def create_new_page(self, survey_id: str) -> json:
-    """Create a new page on the survey. Currently unused."""
+        """Create a new page on the survey. Currently unused."""
         payload = {
                 "title": "Page title"
                 }
@@ -92,9 +92,9 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.POST, payload, url_extras)
 
     def get_page(self, survey_id: str, page_index: int) -> json:
-    """Gets information about an existing page.
-    A page is made on survey creation, but this is the only way to get the page ID.
-    """
+        """Gets information about an existing page.
+        A page is made on survey creation, but this is the only way to get the page ID.
+        """
         payload = {
                 "page": page_index
                 }
@@ -102,7 +102,7 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.GET, payload, url_extras)
 
     def add_poll(self, survey_id: str, page_id: str, games: [Game]) -> json:
-    """Adds a multi-choice question with every valid game as an option."""
+        """Adds a multi-choice question with every valid game as an option."""
         payload = {
                 "headings": [
                     {
@@ -120,10 +120,10 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.POST, payload, url_extras)
 
     def get_poll_choices(self, games: [Game]) -> [dict]:
-    """Converts a list of game objects to a dictionary of question answers."""
+        """Converts a list of game objects to a dictionary of question answers."""
         poll_choices = []
         for g in games:
-            poll_choices.append({"text": g.name})
+            poll_choices.append({"text": g.name + " - " + g.genre})
         return poll_choices
 
 def get_timestamp_from_date(date: str) -> int:
@@ -208,9 +208,7 @@ def get_enough_weeks_passed(last_played_timestamp: float, date_of_tournament: st
             CONST_WEEK_TIMESTAMP())
 
 def is_date_string_valid(date: str) -> bool:
-    """Checks to see if supplied date string is valid.
-    Exits with an error message if not.
-    """
+    """Checks to see if supplied date string is valid. Exits with an error message if not."""
     valid = False
     if type(date) is str:
         # check if formated as dd/mm/yy
@@ -222,14 +220,16 @@ def is_date_string_valid(date: str) -> bool:
     return valid
 
 def get_personal_access_token() -> str:
+    """Present a secure hidden prompt for the user to enter their SurveyMonkey access token"""
     return getpass.getpass("Enter SurveyMonkey API personal access token: ")
 
 def print_request_response(request_response: json):
+    """Print a human-friendly indented request response json string."""
     print("Printing response:")
     print(json.dumps(request_response, indent=4))
 
 def arg_parse() -> []:
-    """Returns a list of parsed command line arguments"""
+    """Returns a list of parsed command line arguments."""
     #parser = argparse.ArgumentParser(version='2.1')
     parser = argparse.ArgumentParser()
     parser.add_argument('planned_games_csv_path', action='store', type=str,
@@ -259,6 +259,7 @@ def arg_parse() -> []:
 #            dest='HIGHEST_LOWEST', help="Include player's highest and lowest Elo values")
     return parser.parse_args()
 
+# TODO: Refactor, this is a big mess
 def main():
     #debug_test_game_class()
     args = arg_parse()
