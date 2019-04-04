@@ -76,10 +76,10 @@ class SurveyMonkeyRequest:
             print_request_response(response)
             exit(1)
 
-    def create_empty_survey(self) -> json:
+    def create_empty_survey(self, tournament_date: str) -> json:
         """Creates a new survey."""
         payload = {
-                "title": "TEST SURVEY CREATION"
+                "title": "Side ASS Community Poll - " + tournament_date
                 }
         return self.make_request(RequestTypes.POST, payload)
 
@@ -283,7 +283,7 @@ def main():
         personal_access_token = get_personal_access_token()
         print("Getting personal access token... DONE")
         print("Creating survey...", end="\r")
-        create_survey_response = SurveyMonkeyRequest(personal_access_token).create_empty_survey()
+        create_survey_response = SurveyMonkeyRequest(personal_access_token).create_empty_survey(args.date_of_tournament)
         print("Creating survey... DONE")
         #print_request_response(create_survey_response)
         survey_id = create_survey_response["id"]
