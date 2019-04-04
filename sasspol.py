@@ -121,9 +121,13 @@ class SurveyMonkeyRequest:
 
     def get_poll_choices(self, games: [Game]) -> [dict]:
         """Converts a list of game objects to a dictionary of question answers."""
-        poll_choices = []
+        answer_texts = []
         for g in games:
-            poll_choices.append({"text": g.name + " - " + g.genre})
+            answer_texts.append(g.name + " - " + g.genre)
+        answer_texts = sorted(answer_texts, key=str.lower)
+        poll_choices = []
+        for at in answer_texts:
+            poll_choices.append({"text": at})
         return poll_choices
 
 def get_timestamp_from_date(date: str) -> int:
