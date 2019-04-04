@@ -11,7 +11,7 @@ from enum import Enum, unique
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Game:
-    ''' Stores the values for each game listed '''
+    """Stores the values for each game listed."""
     def __init__(self, name: str, genre: str, setup_amount: int):
         self.name = name
         self.genre = genre
@@ -20,9 +20,9 @@ class Game:
         self.setup_amount = setup_amount
 
     def set_last_played_timestamp(self, date: str):
-        ''' For played games, set the appropriate timestamp.
+        """ For played games, set the appropriate timestamp.
         The date string has already been validated, no need to check it again here.
-        '''
+        """
         self.has_been_played = True
         self.last_played_timestamp = (get_timestamp_from_date(date))
 
@@ -38,6 +38,7 @@ class SurveyMonkeyRequest:
         self.access_token = access_token
 
     def make_request(self, request_type: RequestTypes, payload: dict, url_extras: [str] = []) -> json:
+    """Make a request to the SurveyMonkey API. Returns a json string of the response."""
         s = requests.Session()
         s.headers.update({
             "Authorization": "Bearer %s" % self.access_token,
@@ -58,6 +59,7 @@ class SurveyMonkeyRequest:
 
     @staticmethod
     def get_url_end_string(url_extras: [str]) -> str:
+    """Convert a list of url subdomains into a url string."""
         if len(url_extras) == 0:
             return ""
         else:
@@ -68,18 +70,21 @@ class SurveyMonkeyRequest:
 
     @staticmethod
     def validate_response(response: json):
+    """Check the request responce to see if it's an error, and if it is, exit with an error."""
         if "error" in response:
             print("ERROR: Request returned error")
             print_request_response(response)
             exit(1)
 
     def create_empty_survey(self) -> json:
+    """Creates a new survey."""
         payload = {
                 "title": "TEST SURVEY CREATION"
                 }
         return self.make_request(RequestTypes.POST, payload)
 
     def create_new_page(self, survey_id: str) -> json:
+    """Create a new page on the survey. Currently unused."""
         payload = {
                 "title": "Page title"
                 }
@@ -87,6 +92,9 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.POST, payload, url_extras)
 
     def get_page(self, survey_id: str, page_index: int) -> json:
+    """Gets information about an existing page.
+    A page is made on survey creation, but this is the only way to get the page ID.
+    """
         payload = {
                 "page": page_index
                 }
@@ -94,6 +102,7 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.GET, payload, url_extras)
 
     def add_poll(self, survey_id: str, page_id: str, games: [Game]) -> json:
+    """Adds a multi-choice question with every valid game as an option."""
         payload = {
                 "headings": [
                     {
@@ -111,23 +120,24 @@ class SurveyMonkeyRequest:
         return self.make_request(RequestTypes.POST, payload, url_extras)
 
     def get_poll_choices(self, games: [Game]) -> [dict]:
+    """Converts a list of game objects to a dictionary of question answers."""
         poll_choices = []
         for g in games:
             poll_choices.append({"text": g.name})
         return poll_choices
 
 def get_timestamp_from_date(date: str) -> int:
-    ''' Converts a date string into int unix epoch time.
-    date argument must be formatted as dd/mm/yy
-    '''
+    """Converts a date string into int unix epoch time.
+    date argument must be formatted as "dd/mm/yy".
+    """
     return time.mktime(datetime.datetime.strptime(date, "%d/%m/%y").timetuple())
 
 def CONST_WEEK_TIMESTAMP() -> int:
-    ''' Returns a constant value of on eweek's worth of time in Unix Epoch time '''
+    """Returns a constant value of on eweek's worth of time in Unix Epoch time."""
     return 604800
 
 def debug_test_game_class():
-    ''' Creates and prints a test game object for debug testing purposes '''
+    """Creates and prints a test game object for debug testing purposes."""
     print("debug_test_game_class() START")
     test_game = Game("mario brother", "jump", 2)
     print("name: " + test_game.name)
@@ -139,7 +149,7 @@ def debug_test_game_class():
     print("debug_test_game_class() END")
 
 def get_planned_games(path_to_csv: str) -> [Game]:
-    ''' Returns an array of every planned game in the input csv '''
+    """Returns an array of every planned game in the input csv."""
     planned_games = []
     row_count = 0
     with open(path_to_csv, newline='') as csvfile:
@@ -157,14 +167,14 @@ def get_planned_games(path_to_csv: str) -> [Game]:
     return planned_games
 
 def debug_test_planned_games(planned_games: [Game]):
-    ''' Prints the title and genre of every planned game for debug testing purposes '''
+    """Prints the title and genre of every planned game for debug testing purposes."""
     print("debug_test_game_class() START")
     for pg in planned_games:
         print(pg.name + " - " + pg.genre + " - setups: " + str(pg.setup_amount))
     print("debug_test_game_class() END")
 
 def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
-    ''' Iterates through the planned game list, setting every played game's appropriate timestamps '''
+    """Iterates through the planned game list, setting every played game's appropriate timestamps."""
     with open(path_to_games_played_csv, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(csvreader)  # skip header line
@@ -177,13 +187,13 @@ def set_games_played(path_to_games_played_csv: str, planned_games: [Game]):
                         g.set_last_played_timestamp(played_date)
 
 def debug_test_games_played(planned_games: [Game]):
-    ''' Prints the most recent timestamp for every played game for debug testing purposes '''
+    """Prints the most recent timestamp for every played game for debug testing purposes."""
     for pg in planned_games:
         if pg.has_been_played:
             print("'" + pg.name + "' was last played: " + str(pg.last_played_timestamp))
 
 def get_valid_games(planned_games: [Game], date_of_tournament: str, weeks_between_replay: int) -> [Game]:
-    ''' Returns a list of valid side bracket games for the poll '''
+    """Returns a list of valid side bracket games for the poll."""
     valid_games = []
     for pg in planned_games:
         if pg.setup_amount > 0:
@@ -193,14 +203,14 @@ def get_valid_games(planned_games: [Game], date_of_tournament: str, weeks_betwee
     return valid_games
 
 def get_enough_weeks_passed(last_played_timestamp: float, date_of_tournament: str, weeks_between_replay: int) -> bool:
-    ''' Return whether enough weeks have passed since the game was last played to be considered for playing again '''
+    """Return whether enough weeks have passed since the game was last played to be considered for playing again."""
     return get_timestamp_from_date(date_of_tournament) > last_played_timestamp + (weeks_between_replay *
             CONST_WEEK_TIMESTAMP())
 
 def is_date_string_valid(date: str) -> bool:
-    ''' Checks to see if supplied date string is valid.
+    """Checks to see if supplied date string is valid.
     Exits with an error message if not.
-    '''
+    """
     valid = False
     if type(date) is str:
         # check if formated as dd/mm/yy
@@ -219,7 +229,7 @@ def print_request_response(request_response: json):
     print(json.dumps(request_response, indent=4))
 
 def arg_parse() -> []:
-    '''Returns a list of parsed command line arguments'''
+    """Returns a list of parsed command line arguments"""
     #parser = argparse.ArgumentParser(version='2.1')
     parser = argparse.ArgumentParser()
     parser.add_argument('planned_games_csv_path', action='store', type=str,
