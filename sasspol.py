@@ -116,6 +116,11 @@ class SurveyMonkeyRequest:
                 "subtype": "vertical",
                 "answers": {
                     "choices": self.get_poll_choices(games)
+                    },
+                "required": {
+                    "type": "at_least",
+                    "amount": "1",
+                    "text": "Please select at least one game!"
                     }
                 }
         url_extras = [survey_id, "pages", page_id, "questions"]
@@ -131,6 +136,20 @@ class SurveyMonkeyRequest:
         for at in answer_texts:
             poll_choices.append({"text": at})
         return poll_choices
+
+    def add_suggestion_box(self, survey_id: str, page_id: str) -> json:
+        payload = {
+                "headings": [
+                    {
+                        "heading": "Are there any games not listed here that you would like to see us run?"
+                        }
+                    ],
+                "position": 2,
+                "family": "open_ended",
+                "subtype": "essay"
+                }
+        url_extras = [survey_id, "pages", page_id, "questions"]
+        return self.make_request(RequestTypes.POST, payload, url_extras)
 
 def get_timestamp_from_date(date: str) -> int:
     """Converts a date string into int unix epoch time.
