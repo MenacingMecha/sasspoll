@@ -324,6 +324,9 @@ def main():
         print("Adding poll to survey...", end="\r")
         add_poll_response = SurveyMonkeyRequest(personal_access_token).add_poll(survey_id, page_id, valid_games)
         print("Adding poll to survey... DONE")
+        print("Adding suggestion box to survey...", end="\r")
+        add_suggestion_box_response = SurveyMonkeyRequest(personal_access_token).add_suggestion_box(survey_id, page_id)
+        print("Adding suggestion box to survey... DONE")
         print("Poll created successfully!")
 
 if __name__ == "__main__":
